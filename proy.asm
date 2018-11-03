@@ -46,7 +46,7 @@ mainLoop:
 	jal toint
 	sw $v0, ($s1)
 	addi $s0, $s0, -1
-	addi $a0, $a0, 8
+	addi $a0, $a0, 10
 	addi $s1, $s1, 4
 	b mainLoop
 outLoop:
