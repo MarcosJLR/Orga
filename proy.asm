@@ -2,8 +2,9 @@
 
 .align 2
 program: .space 400
-str:     .ascii "80a450003464000a00000000"
-N:       .word 3
+file:    .space 24
+str:     .space 1004
+N:       .space 4
 
 .align 2
 coop:   .word haltF, 0, 0, 0, sllvF, bneF, beqF, 0, addiF, 0, 0 ,0, andiF, oriF
@@ -31,9 +32,12 @@ newL:   .asciiz "\n"
 bsp:    .asciiz " "
 dollar: .asciiz " $"
 
+endline: .byte '\n'
+
 .text
 
 main:
+	jal readfile
 	la $a0, str
 	lw $s0, N
 	la $s1, program
@@ -85,6 +89,38 @@ tointInc:
 	addi $t1, $t1, 1
 	b tointLoop
 tointRet:
+	jr $ra
+	
+readfile:
+	li $v0, 8
+	la $a0, file
+	li $a1, 119
+	syscall
+	move $t0, $a0
+	lb $t2, endline
+	li $t3, 0
+nloop:
+	lb $t1, 0($t0)
+	beq $t1, $t2, changen
+	beq $t1, $t3, endnloop
+	addi $t0, $t0, 1
+	b nloop
+changen:
+	sb $t3, 0($t0)
+endnloop:
+	li $v0, 13
+	li $a1, 0
+	li $a2, 0
+	syscall
+	move $a0, $v0
+	li $v0, 14
+	la $a1, str
+	li $a2, 1000
+	syscall
+	li $t2, 10
+	div $v0, $t2
+	mflo $t1
+	sw $t1, N
 	jr $ra
 		
 printInst:				#Recibe en $a2 la direccion de la instruccion a traducir
