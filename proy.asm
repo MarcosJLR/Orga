@@ -13,7 +13,7 @@ coop:   .word haltF, 0, 0, 0, sllvF, bneF, beqF, 0, addiF, 0, 0 ,0, andiF, oriF
 	.word addF, 0, subF, lwF, 0, orF, 0, 0, andF, 0, 0, swF
 	.space 80
 
-haltM:  .asciiz " R halt "
+haltM:  .asciiz " R halt"
 sllvM:  .asciiz " R sllv " 
 bneM:   .asciiz " I bne "
 beqM:   .asciiz " I beq "
@@ -29,7 +29,7 @@ andM:   .asciiz " R and "
 swM:    .asciiz " I sw "
 newL:   .asciiz "\n"
 bsp:    .asciiz " "
-dollar: .asciiz "$"
+dollar: .asciiz " $"
 
 .text
 
@@ -59,7 +59,8 @@ outLoop2:
 	syscall
 
 
-toint:
+toint:				#recibe en $a0 la direccion del primer char del string a traducir
+				#retorna en $v0 el entero deseado
 	li $v0, 0
 	li $t0, 0
 	move $t1, $a0
@@ -86,32 +87,320 @@ tointInc:
 tointRet:
 	jr $ra
 		
-printInst:
+printInst:				#Recibe en $a2 la direccion de la instruccion a traducir
 	lw $a1, 0($a2)
+	li $v0, 34
+	move $a0, $a1
+	syscall
+	
 	andi $t0, $a1, 0xfc000000
 	srl $t0, $t0, 24
 	lw $t1, coop($t0)
-	#add $t1, $t0, $t1
+	
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
 	jalr $t1
-printInstRet:
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+
 	li $v0, 4
 	la $a0, newL
 	syscall
 	jr $ra
 	
-haltF:  
-sllvF:  
-bneF:   
-beqF:   
-addiF:  
-andiF:  
-oriF:   
-multF:  
-addF: 
-	li $v0, 10
-	syscall  
-subF:   
-lwF:    
-orF:    
-andF:   
-swF:    
+haltF:  				#Recibe en $a1 la instruccion de halt (en hexadecimal)
+	li $v0, 4
+	la $a0, haltM
+	syscall
+	jr $ra
+	
+sllvF:  				#Recibe en $a1 la instruccion de sllv (en hexadecimal)
+	li $v0, 4
+	la $a0, sllvM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+
+	jr $ra
+bneF:     				#Recibe en $a1 la instruccion de bne (en hexadecimal)
+	li $v0, 4
+	la $a0, bneM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+beqF:     				#Recibe en $a1 la instruccion de beq (en hexadecimal)
+	li $v0, 4
+	la $a0, beqM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+addiF:    				#Recibe en $a1 la instruccion de addi (en hexadecimal)
+	li $v0, 4
+	la $a0, addiM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+andiF:    				#Recibe en $a1 la instruccion de andi (en hexadecimal)
+	li $v0, 4
+	la $a0, addiM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+oriF:     				#Recibe en $a1 la instruccion de ori (en hexadecimal)
+	li $v0, 4
+	la $a0, oriM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+multF:    				#Recibe en $a1 la instruccion de mult (en hexadecimal)
+	li $v0, 4
+	la $a0, multM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+addF:   				#Recibe en $a1 la instruccion de add (en hexadecimal)
+	li $v0, 4
+	la $a0, addM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+subF:     				#Recibe en $a1 la instruccion de sub (en hexadecimal)
+	li $v0, 4
+	la $a0, subM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+lwF:      				#Recibe en $a1 la instruccion de lw (en hexadecimal)
+	li $v0, 4
+	la $a0, lwM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+orF:      				#Recibe en $a1 la instruccion de or (en hexadecimal)
+	li $v0, 4
+	la $a0, orM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+andF:     				#Recibe en $a1 la instruccion de and (en hexadecimal)
+	li $v0, 4
+	la $a0, andM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstR
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+swF:      				#Recibe en $a1 la instruccion de sw (en hexadecimal)
+	li $v0, 4
+	la $a0, swM
+	syscall
+
+	move $fp, $sp
+	addi $sp, $sp, -8
+	sw $ra, 4($sp)
+	sw $fp, 8($sp)
+	
+	jal printInstI
+
+	lw $ra, 4($sp)
+	lw $fp, 8($sp)
+	move $sp, $fp
+	
+	jr $ra
+	
+printInstR:				#Recibe en $a1 la instruccion tipo R a imprimir
+	andi $t0, $a1, 0xf800
+	srl $t0, $t0, 11
+	li $v0, 4
+	la $a0, dollar
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	andi $t0, $a1, 0x3e00000
+	srl $t0, $t0, 21
+	li $v0, 4
+	la $a0, dollar
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	andi $t0, $a1, 0x1f0000
+	srl $t0, $t0, 16
+	li $v0, 4
+	la $a0, dollar
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	jr $ra
+	
+printInstI:				#Recibe en $a1 la instruccion tipo R a imprimir
+	andi $t0, $a1, 0x1f0000
+	srl $t0, $t0, 16
+	li $v0, 4
+	la $a0, dollar
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	andi $t0, $a1, 0x3e00000
+	srl $t0, $t0, 21
+	li $v0, 4
+	la $a0, dollar
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
+	
+	li $v0, 4
+	la $a0, bsp
+	syscall
+	
+	li $v0, 1
+	andi $a0, $a1, 0xffff
+	syscall
+	
+	jr $ra
